@@ -2,18 +2,26 @@ require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const pretty = require('express-prettify');
+const dayjs = require('dayjs');
 
 const {
   getFilteredBoardCards,
   getCardsForList,
   getListActions,
+  getCardActions,
 } = require('./services/trello');
 
+const DATE_FORMAT = process.env.DATE_FORMAT;
 
 const getEstimateForCard = require('./util/getEstimateForCard');
 const calculateSprintDates = require('./util/calculateSprintDates');
-const calculateMetrics = require('./util/calculateMetrics');
+
 const app = express();
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 
 
 app.get('/sprint/metrics/:sprintNumber/:sprintName', async (req, res) => {
@@ -29,6 +37,7 @@ app.get('/sprint/metrics/:sprintNumber/:sprintName', async (req, res) => {
   ];
 
   try {
+
     const lists = await getFilteredBoardCards(required);
 
     const cards = (await Promise.all(lists.map(list => {
@@ -39,6 +48,7 @@ app.get('/sprint/metrics/:sprintNumber/:sprintName', async (req, res) => {
       .reduce((accumulator, nextCard) => accumulator + getEstimateForCard(nextCard), 0);
 
     const completedCards = await getCardsForList(lists[lists.length - 1].id);
+
     const totalCompletedPointsInSprint = completedCards
       .reduce((accumulator, nextCard) => accumulator + getEstimateForCard(nextCard), 0);
 
@@ -57,23 +67,46 @@ app.get('/sprint/metrics/:sprintNumber/:sprintName', async (req, res) => {
         daysRemaning,
       } = calculateSprintDates(date);
 
-      const metrics = await Promise.all(datesInSprint.map(async dateAndDay => {
-        const { day, date } = dateAndDay;
+      const completedCardsAndActions = await Promise.all(completedCards.map(async card => {
+        const actions = await getCardActions(card.id);
+        const completedAction = actions.find(action =>
+          action.data.listAfter &&
+          action.data.listAfter.name === required[required.length - 1]
+        );
 
-        const points = await completedCards.reduce(async (accumulator, nextCard) => {
-          await accumulator;
-          return calculateMetrics(nextCard, required, date);
-        }, Promise.resolve(0))
+        return {
+          card,
+          action: completedAction
+        };
+      }));
+
+      let remaining = totalPointsInSprint;
+
+      const metrics = datesInSprint.map(dateAndDay => {
+        const { day, date } = dateAndDay;
+        const points = completedCardsAndActions.reduce((accumulator, nextCardAndAction) => {
+          const actionDate = dayjs(nextCardAndAction.action.date).format(DATE_FORMAT);
+
+          if (actionDate === date) {
+            return accumulator + getEstimateForCard(nextCardAndAction.card);
+          }
+
+          return accumulator
+        }, 0)
+
+        remaining = remaining - points;
 
         return {
           day,
           date,
           completed: points,
+          remaining,
         }
-      }));
+      });
 
       res.send({
         sprintName,
+        sprintNumber,
         sprintStartDate,
         sprintEndDate,
         sprintDuration,
@@ -99,12 +132,6 @@ app.get('/sprint/metrics/:sprintNumber/:sprintName', async (req, res) => {
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
 
 app.use(pretty());
 
