@@ -5,10 +5,10 @@ const GET_CARDS_URL = `https://api.trello.com/1/lists/{listId}/cards?key=${proce
 const GET_CARDS_ACTION_URL = `https://api.trello.com/1/cards/{cardId}/actions?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}&filter=updateCard`;
 const GET_LIST_ACTION_URL = `https://api.trello.com/1/lists/{listId}/actions?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}`;
 
-const getFilteredBoardCards = async (filter) => {
+const getListsForBoard = async () => {
   try {
     const lists = (await axios.get(GET_LISTS_URL)).data;
-    return lists.filter(list => filter.includes(list.name));
+    return lists;
   } catch (err) {
     console.log(err);
   }
@@ -42,8 +42,8 @@ const getListActions = async listId => {
 }
 
 module.exports = {
-  getFilteredBoardCards,
   getCardsForList,
   getCardActions,
   getListActions,
+  getListsForBoard,
 }

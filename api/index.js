@@ -5,16 +5,17 @@ const pretty = require('express-prettify');
 const dayjs = require('dayjs');
 
 const {
-  getFilteredBoardCards,
   getCardsForList,
   getListActions,
   getCardActions,
+  getListsForBoard,
 } = require('./services/trello');
 
 const DATE_FORMAT = process.env.DATE_FORMAT;
 
 const getEstimateForCard = require('./util/getEstimateForCard');
 const calculateSprintDates = require('./util/calculateSprintDates');
+const getSprintNameAndNumber = require('./util/getSprintNameAndNumber');
 
 const app = express();
 app.use((req, res, next) => {
@@ -24,37 +25,37 @@ app.use((req, res, next) => {
 });
 
 
-app.get('/sprint/metrics/:sprintNumber/:sprintName', async (req, res) => {
-  const { sprintNumber, sprintName } = req.params;
-
-  const required = [
-    `Sprint ${sprintName} - Backlog`,
-    'In Progress',
-    'Blocked',
-    'In Review',
-    'PO Approval',
-    `Done - Sprint ${sprintNumber} (${sprintName})`
-  ];
-
+app.get('/sprint/metrics', async (req, res) => {
   try {
+    const allLists = await getListsForBoard();
 
-    const lists = await getFilteredBoardCards(required);
+    const { sprintName, sprintNumber } = getSprintNameAndNumber(allLists);
 
-    const cards = (await Promise.all(lists.map(list => {
+    const required = [
+      `Sprint ${sprintName} - Backlog`,
+      'In Progress',
+      'Blocked',
+      'In Review',
+      'PO Approval',
+      `Done - Sprint ${sprintNumber} (${sprintName})`
+    ];
+
+    const filteredLists = allLists.filter(list => required.includes(list.name));
+    const cards = (await Promise.all(filteredLists.map(list => {
       return getCardsForList(list.id);
     }))).flat();
 
     const totalPointsInSprint = cards
       .reduce((accumulator, nextCard) => accumulator + getEstimateForCard(nextCard), 0);
 
-    const completedCards = await getCardsForList(lists[lists.length - 1].id);
+    const completedCards = await getCardsForList(filteredLists[filteredLists.length - 1].id);
 
     const totalCompletedPointsInSprint = completedCards
       .reduce((accumulator, nextCard) => accumulator + getEstimateForCard(nextCard), 0);
 
     const leftInSprint = totalPointsInSprint - totalCompletedPointsInSprint;
 
-    const listActions = (await getListActions(lists[0].id))
+    const listActions = (await getListActions(filteredLists[0].id))
       .find(action => action.type === 'updateList' && action.data.old.name !== action.data.list.name);
 
     if (listActions) {
