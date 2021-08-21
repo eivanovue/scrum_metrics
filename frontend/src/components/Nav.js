@@ -1,4 +1,5 @@
-import { Navbar, Container } from "react-bootstrap";
+import { Navbar, Container } from 'react-bootstrap';
+import React from 'react';
 
 const Navigation = () => (
   <>
@@ -8,5 +9,5 @@ const Navigation = () => (
       </Container>
     </Navbar>
   </>
-)
+);
 export default Navigation;

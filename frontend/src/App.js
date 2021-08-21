@@ -1,14 +1,18 @@
+import React, { useState } from 'react';
 import './App.scss';
+import {
+  Container, Card, Row, Col, Button,
+} from 'react-bootstrap';
+
+// eslint-disable-next-line import/no-unresolved
+import env from 'react-dotenv';
 import getter from './util/getter';
-import { Container, Card, Row, Col, Button } from 'react-bootstrap';
 import Navigation from './components/nav';
 import ResponsiveArticle from './util/ResponsiveArticle';
 import BurnDownChart from './components/burndown-chart';
-import { useState } from 'react';
 import catVideo from './assets/cat.mp4';
 import PageError from './components/page-error';
 import AddedBurnedChart from './components/added-burned-chart';
-import env from "react-dotenv";
 
 function App() {
   const API_URL = `${env.SSL === 'true' ? 'https://' : 'http://'}${env.API_HOST}:${env.SSL === 'true' ? env.API_PORT_SSL : env.API_PORT}/sprint/metrics`;
@@ -31,15 +35,20 @@ function App() {
       color: '#080808',
       transition: 'all 0.4s ease 0s',
       textTransform: 'unset',
-    }
-  }
+    },
+  };
   return (
     <div className="min-vh-100">
       <Navigation />
       <Container>
 
         {loading && (
-          <ResponsiveArticle className="mt-5" />
+          <Row className="mt-5">
+            <Col>
+              <ResponsiveArticle />
+
+            </Col>
+          </Row>
         )}
 
         {error && <PageError />}
@@ -65,7 +74,10 @@ function App() {
                     </Row>
                     <Row>
                       <Col className="">
-                        <p>Number<span className="f-right">{data.sprintNumber}</span></p>
+                        <p>
+                          Number
+                          <span className="f-right">{data.sprintNumber}</span>
+                        </p>
                       </Col>
                     </Row>
                   </div>
@@ -90,14 +102,17 @@ function App() {
                     </Row>
                     <Row>
                       <Col className="">
-                        <p>Duration<span className="f-right">{data.sprintDuration}</span></p>
+                        <p>
+                          Duration
+                          <span className="f-right">{data.sprintDuration}</span>
+                        </p>
                       </Col>
                     </Row>
                   </div>
                 </Card>
               </Col>
 
-              <Col md={{ span: 4 }} xl={{ span: 3 }} className="align-items-stretch mb-3" >
+              <Col md={{ span: 4 }} xl={{ span: 3 }} className="align-items-stretch mb-3">
                 <Card className="card bg-c-yellow order-card">
                   <div className="card-block">
                     <Row>
@@ -115,7 +130,10 @@ function App() {
                     </Row>
                     <Row>
                       <Col className="">
-                        <p>Added During Sprint<span className="f-right">{data.storyPointsAddedDuringSprint}</span></p>
+                        <p>
+                          Added During Sprint
+                          <span className="f-right">{data.storyPointsAddedDuringSprint}</span>
+                        </p>
                       </Col>
                     </Row>
                   </div>
@@ -140,7 +158,10 @@ function App() {
                     </Row>
                     <Row>
                       <Col>
-                        <p>Remaining<span className="f-right">{data.leftInSprint}</span></p>
+                        <p>
+                          Remaining
+                          <span className="f-right">{data.leftInSprint}</span>
+                        </p>
                       </Col>
                     </Row>
                   </div>

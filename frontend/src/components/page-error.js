@@ -11,22 +11,27 @@ const PageError = () => {
       marginRight: '20px',
     },
     heading: {
-      textTransform: 'uppercase'
+      textTransform: 'uppercase',
     },
     description: {
       marginTop: '25px',
-      opacity: '.75'
-    }
-  }
+      opacity: '.75',
+    },
+  };
   return (
     <Row style={styles.errorContainer}>
       <Col>
-        <h1 style={styles.heading}><i className="fa fa-exclamation-circle" style={styles.icon}></i>Oops...</h1>
-        <p style={styles.description}>Something has gone wrong on our end. We apologise for the inconvinience.</p>
-        <Button variant={'dark'} onClick={() => window.location.reload()}>Refresh</Button>
+        <h1 style={styles.heading}>
+          <i className="fa fa-exclamation-circle" style={styles.icon} />
+          Oops...
+        </h1>
+        <p style={styles.description}>
+          Something has gone wrong on our end. We apologise for the inconvinience.
+        </p>
+        <Button variant="dark" onClick={() => window.location.reload()}>Refresh</Button>
       </Col>
-    </Row >
-  )
+    </Row>
+  );
 };
 
 export default PageError;

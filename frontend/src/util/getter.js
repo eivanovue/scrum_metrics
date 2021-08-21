@@ -20,7 +20,7 @@ const Getter = (url) => {
         if (!ignore) setData(response.data);
         await sleep(1); // REMOVE THIS
       } catch (err) {
-        console.log(err)
+        console.log(err);
         setError(true);
       }
       setLoading(false);
