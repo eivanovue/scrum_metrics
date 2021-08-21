@@ -5,10 +5,10 @@ const getAddedPoints = (cards, date, requiredLists) => cards.reduce((accumulator
   const { actions } = nextCard;
   const { card } = nextCard;
 
-  const movedIntoSprintAction = actions.find(action => {
+  const movedIntoSprintAction = actions.find((action) => {
     if (action.data.listAfter) {
-      if ((action.data.listAfter.name === requiredLists[0] && action.data.listBefore.name === 'Dev Ready (Refined and estimated)') ||
-        (action.data.listAfter.name === requiredLists[1] && action.data.listBefore.name === 'Dev Ready (Refined and estimated)')) {
+      if ((action.data.listAfter.name === requiredLists[0] && action.data.listBefore.name === 'Dev Ready (Refined and estimated)')
+        || (action.data.listAfter.name === requiredLists[1] && action.data.listBefore.name === 'Dev Ready (Refined and estimated)')) {
         return true;
       }
     }

@@ -14,15 +14,15 @@ const calculateSprintDates = (sprintStartDate) => {
     const datesInSprint = Array(duration).fill(0).map((_, i) => i + 0).map((days) => {
       if (DAYS_TO_IGNORE.includes(start.add(days, 'days').get('day'))) {
         return null;
-      } else {
-        const nextDate = start.add(days, 'days').format(DATE_FORMAT)
-        day += 1;
-        return {
-          day,
-          date: nextDate,
-        };
       }
-    }).filter(date => date !== null);
+      const nextDate = start.add(days, 'days').format(DATE_FORMAT);
+      day += 1;
+      return {
+        day,
+        date: nextDate,
+      };
+    })
+      .filter((date) => date !== null);
 
     if (left <= 0) {
       left = 0;
@@ -34,9 +34,9 @@ const calculateSprintDates = (sprintStartDate) => {
       sprintDuration: duration,
       datesInSprint,
       daysRemaning: left,
-    }
+    };
   }
   return null;
-}
+};
 
 module.exports = calculateSprintDates;

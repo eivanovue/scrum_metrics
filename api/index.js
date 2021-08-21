@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const pretty = require('express-prettify');
@@ -38,30 +38,29 @@ app.get('/sprint/metrics', async (req, res) => {
     } = getSprintInfo(boardLists);
 
     const requiredLists = getRequiredLists(sprintNumber, sprintName);
-    const filteredLists = boardLists.filter(list => requiredLists.includes(list.name));
-    const cards = (await Promise.all(filteredLists.map(list => getCardsForList(list.id)))).flat();
+    const filteredLists = boardLists.filter((list) => requiredLists.includes(list.name));
+    const cards = (await Promise.all(filteredLists.map((list) => getCardsForList(list.id)))).flat();
 
-    const cardsWithEstimates = cards.filter(card => getCardEstimate(card) > 0);
-    const cardsWithEstimatesIds = cardsWithEstimates.map(card => card.id);
+    const cardsWithEstimates = cards.filter((card) => getCardEstimate(card) > 0);
+    const cardsWithEstimatesIds = cardsWithEstimates.map((card) => card.id);
 
     const actions = await getBatchCardActions(cardsWithEstimatesIds);
 
-    const cardsAndActionsWithEstimates = cardsWithEstimates.map(card => {
-      const actionsForCard = actions.filter(action => action.data.card.id === card.id);
+    const cardsAndActionsWithEstimates = cardsWithEstimates.map((card) => {
+      const actionsForCard = actions.filter((action) => action.data.card.id === card.id);
       return {
         card,
-        actions: actionsForCard
-      }
+        actions: actionsForCard,
+      };
     });
 
     const completedCardsAndActionsWithEstimates = cardsAndActionsWithEstimates
-      .filter(cardAndActions => cardAndActions.card.idList === filteredLists[filteredLists.length - 1].id);
+      .filter((card) => card.card.idList === filteredLists[filteredLists.length - 1].id);
 
     const sprintStartAction = (await getCardActions(process.env.TRELLO_SPRINT_CARD))
-      .find(action => action.data.old.name !== action.data.card.name);
+      .find((action) => action.data.old.name !== action.data.card.name);
 
     if (sprintStartAction) {
-
       const { date } = sprintStartAction;
       const {
         sprintStartDate,
@@ -71,22 +70,21 @@ app.get('/sprint/metrics', async (req, res) => {
         daysRemaning,
       } = calculateSprintDates(date);
 
-      const completedCardsAndActions = completedCardsAndActionsWithEstimates.map(cardAndActions => {
-        const { actions } = cardAndActions;
-        const { card } = cardAndActions;
+      const completedCardsAndActions = completedCardsAndActionsWithEstimates
+        .map((cardAndActions) => {
+          const { actions } = cardAndActions;
+          const { card } = cardAndActions;
 
-        const completedAction = actions.find(action =>
-          action.data.listAfter &&
-          action.data.listAfter.name === requiredLists[requiredLists.length - 1]
-        );
+          const completedAction = actions.find((action) => action.data.listAfter
+            && action.data.listAfter.name === requiredLists[requiredLists.length - 1]);
 
-        return {
-          card,
-          action: completedAction
-        };
-      });
+          return {
+            card,
+            action: completedAction,
+          };
+        });
 
-      const metricsRaw = datesInSprint.map(dateAndDay => {
+      const metricsRaw = datesInSprint.map((dateAndDay) => {
         const { date, day } = dateAndDay;
 
         const pointsBurned = getBurnedPoints(completedCardsAndActions, date);
@@ -96,7 +94,7 @@ app.get('/sprint/metrics', async (req, res) => {
           day,
           added: pointsAdded,
           completed: pointsBurned,
-        }
+        };
       });
 
       const storyPointsInSprint = metricsRaw
@@ -104,11 +102,11 @@ app.get('/sprint/metrics', async (req, res) => {
 
       let remaining = storyPointsInSprint;
 
-      const metrics = metricsRaw.map(metric => {
+      const metrics = metricsRaw.map((metric) => {
         const { added, completed, day } = metric;
 
         if (day === 1) {
-          remaining = remaining - completed;
+          remaining -= completed;
         } else {
           remaining = (remaining - completed) + added;
         }
@@ -116,8 +114,8 @@ app.get('/sprint/metrics', async (req, res) => {
         return {
           added,
           completed,
-          remaining
-        }
+          remaining,
+        };
       });
 
       const storyPointsAddedDuringSprint = metrics.reduce((accumulator, metric) => {
@@ -146,17 +144,16 @@ app.get('/sprint/metrics', async (req, res) => {
         storyPointsAddedDuringSprint,
       });
     } else {
-      console.log('Error encountered finding sprint start action')
-      res.status(500)
-      res.send('Error encountered with missing data')
+      console.log('Error encountered finding sprint start action');
+      res.status(500);
+      res.send('Error encountered with missing data');
     }
   } catch (error) {
     console.log(error);
     res.status(error.status);
-    res.send(error.message)
+    res.send(error.message);
   }
 });
-
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -172,8 +169,8 @@ https
       cert: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/cert.pem'),
       ca: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/fullchain.pem'),
     },
-    app
+    app,
   )
   .listen(process.env.SSL_PORT, () => {
     console.log(`HTTPS Server is listening on port ${process.env.SSL_PORT}`);
-  })
+  });

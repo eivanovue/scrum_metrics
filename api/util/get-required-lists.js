@@ -5,7 +5,7 @@ const getSprintInfo = (sprintNumber, sprintName) => (
     'Blocked',
     'In Review',
     'PO Approval',
-    `Done - Sprint ${sprintNumber} (${sprintName})`
+    `Done - Sprint ${sprintNumber} (${sprintName})`,
   ]
 );
 

@@ -1,4 +1,3 @@
-
 const calculateSprintDates = require('./calculate-sprint-dates');
 const getBurnedPoints = require('./get-burned-points');
 const getAddedPoints = require('./get-added-points');
@@ -15,4 +14,4 @@ module.exports = {
   getRequiredLists,
   getSprintInfo,
   splitArrayIntoChunks,
-}
+};

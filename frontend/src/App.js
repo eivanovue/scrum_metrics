@@ -11,10 +11,9 @@ import AddedBurnedChart from './components/added-burned-chart';
 import env from "react-dotenv";
 
 function App() {
-  console.log(env.API_HOST)
-  const { data, loading, error } = getter('http://82.37.208.27:3001/sprint/metrics');
+  const API_URL = `${env.SSL === 'true' ? 'https://' : 'http://'}${env.API_HOST}:${env.SSL === 'true' ? env.API_PORT_SSL : env.API_PORT}/sprint/metrics`;
+  const { data, loading, error } = getter(API_URL);
   const [isGoodVibes, setIsGoodVibes] = useState(false);
-
   const handleGoodVibes = () => {
     setIsGoodVibes(!isGoodVibes);
   };
