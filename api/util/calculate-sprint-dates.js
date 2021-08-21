@@ -1,6 +1,6 @@
 const dayjs = require('dayjs');
 
-module.exports = (sprintStartDate) => {
+const calculateSprintDates = (sprintStartDate) => {
   const DATE_FORMAT = 'dddd, MMMM D, YYYY';
   // Day of Week (Sunday as 0, Saturday as 6)
   const DAYS_TO_IGNORE = [0, 6];
@@ -8,7 +8,7 @@ module.exports = (sprintStartDate) => {
     const start = dayjs(sprintStartDate);
     const end = start.add(13, 'day');
     const duration = end.diff(start, 'days') + 1;
-    const left = end.diff(dayjs(), 'days');
+    let left = end.diff(dayjs(), 'days') + 1;
     let day = 0;
 
     const datesInSprint = Array(duration).fill(0).map((_, i) => i + 0).map((days) => {
@@ -24,6 +24,10 @@ module.exports = (sprintStartDate) => {
       }
     }).filter(date => date !== null);
 
+    if (left <= 0) {
+      left = 0;
+    }
+
     return {
       sprintStartDate: start.format(DATE_FORMAT),
       sprintEndDate: end.format(DATE_FORMAT),
@@ -34,3 +38,5 @@ module.exports = (sprintStartDate) => {
   }
   return null;
 }
+
+module.exports = calculateSprintDates;

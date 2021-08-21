@@ -8,19 +8,19 @@ function sleep(ms) {
 const Getter = (url) => {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState({});
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let ignore = false;
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        setError({});
+        setError(false);
         const response = await axios(url);
         if (!ignore) setData(response.data);
         await sleep(1); // REMOVE THIS
       } catch (err) {
-        setError(err);
+        setError(true);
       }
       setLoading(false);
     };

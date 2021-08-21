@@ -2,64 +2,65 @@ require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const pretty = require('express-prettify');
-const dayjs = require('dayjs');
 
 const {
   getCardsForList,
-  getListActions,
-  getCardActions,
   getListsForBoard,
-} = require('./services/trello');
+  getBatchCardActions,
+  getCardActions,
+} = require('./services/trello.js');
 
-const DATE_FORMAT = process.env.DATE_FORMAT;
-
-const getEstimateForCard = require('./util/getEstimateForCard');
-const calculateSprintDates = require('./util/calculateSprintDates');
-const getSprintNameAndNumber = require('./util/getSprintNameAndNumber');
+const {
+  calculateSprintDates,
+  getBurnedPoints,
+  getAddedPoints,
+  getCardEstimate,
+  getRequiredLists,
+  getSprintInfo,
+} = require('./util');
 
 const app = express();
-app.use((req, res, next) => {
+app.use((_req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
 
-
 app.get('/sprint/metrics', async (req, res) => {
   try {
-    const allLists = await getListsForBoard();
+    const boardLists = await getListsForBoard();
 
-    const { sprintName, sprintNumber } = getSprintNameAndNumber(allLists);
+    const {
+      sprintName,
+      sprintNumber,
+    } = getSprintInfo(boardLists);
 
-    const required = [
-      `Sprint ${sprintName} - Backlog`,
-      'In Progress',
-      'Blocked',
-      'In Review',
-      'PO Approval',
-      `Done - Sprint ${sprintNumber} (${sprintName})`
-    ];
+    const requiredLists = getRequiredLists(sprintNumber, sprintName);
+    const filteredLists = boardLists.filter(list => requiredLists.includes(list.name));
+    const cards = (await Promise.all(filteredLists.map(list => getCardsForList(list.id)))).flat();
 
-    const filteredLists = allLists.filter(list => required.includes(list.name));
-    const cards = (await Promise.all(filteredLists.map(list => {
-      return getCardsForList(list.id);
-    }))).flat();
+    const cardsWithEstimates = cards.filter(card => getCardEstimate(card) > 0);
+    const cardsWithEstimatesIds = cardsWithEstimates.map(card => card.id);
 
-    const totalPointsInSprint = cards
-      .reduce((accumulator, nextCard) => accumulator + getEstimateForCard(nextCard), 0);
+    const actions = await getBatchCardActions(cardsWithEstimatesIds);
 
-    const completedCards = await getCardsForList(filteredLists[filteredLists.length - 1].id);
+    const cardsAndActionsWithEstimates = cardsWithEstimates.map(card => {
+      const actionsForCard = actions.filter(action => action.data.card.id === card.id);
+      return {
+        card,
+        actions: actionsForCard
+      }
+    });
 
-    const totalCompletedPointsInSprint = completedCards
-      .reduce((accumulator, nextCard) => accumulator + getEstimateForCard(nextCard), 0);
+    const completedCardsAndActionsWithEstimates = cardsAndActionsWithEstimates
+      .filter(cardAndActions => cardAndActions.card.idList === filteredLists[filteredLists.length - 1].id);
 
-    const leftInSprint = totalPointsInSprint - totalCompletedPointsInSprint;
+    const sprintStartAction = (await getCardActions('60082e2b402dfd16c9b5659d'))
+      .find(action => action.data.old.name !== action.data.card.name);
 
-    const listActions = (await getListActions(filteredLists[0].id))
-      .find(action => action.type === 'updateList' && action.data.old.name !== action.data.list.name);
+    if (sprintStartAction) {
 
-    if (listActions) {
-      const { date } = listActions;
+      const { date } = sprintStartAction;
       const {
         sprintStartDate,
         sprintEndDate,
@@ -68,42 +69,66 @@ app.get('/sprint/metrics', async (req, res) => {
         daysRemaning,
       } = calculateSprintDates(date);
 
-      const completedCardsAndActions = await Promise.all(completedCards.map(async card => {
-        const actions = await getCardActions(card.id);
+      const completedCardsAndActions = completedCardsAndActionsWithEstimates.map(cardAndActions => {
+        const { actions } = cardAndActions;
+        const { card } = cardAndActions;
+
         const completedAction = actions.find(action =>
           action.data.listAfter &&
-          action.data.listAfter.name === required[required.length - 1]
+          action.data.listAfter.name === requiredLists[requiredLists.length - 1]
         );
 
         return {
           card,
           action: completedAction
         };
-      }));
+      });
 
-      let remaining = totalPointsInSprint;
+      const metricsRaw = datesInSprint.map(dateAndDay => {
+        const { date, day } = dateAndDay;
 
-      const metrics = datesInSprint.map(dateAndDay => {
-        const { day, date } = dateAndDay;
-        const points = completedCardsAndActions.reduce((accumulator, nextCardAndAction) => {
-          const actionDate = dayjs(nextCardAndAction.action.date).format(DATE_FORMAT);
-
-          if (actionDate === date) {
-            return accumulator + getEstimateForCard(nextCardAndAction.card);
-          }
-
-          return accumulator
-        }, 0)
-
-        remaining = remaining - points;
+        const pointsBurned = getBurnedPoints(completedCardsAndActions, date);
+        const pointsAdded = getAddedPoints(cardsAndActionsWithEstimates, date, requiredLists);
 
         return {
           day,
-          date,
-          completed: points,
-          remaining,
+          added: pointsAdded,
+          completed: pointsBurned,
         }
       });
+
+      const storyPointsInSprint = metricsRaw
+        .reduce((accumulator, metric) => accumulator + metric.added, 0);
+
+      let remaining = storyPointsInSprint;
+
+      const metrics = metricsRaw.map(metric => {
+        const { added, completed, day } = metric;
+
+        if (day === 1) {
+          remaining = remaining - completed;
+        } else {
+          remaining = (remaining - completed) + added;
+        }
+
+        return {
+          added,
+          completed,
+          remaining
+        }
+      });
+
+      const storyPointsAddedDuringSprint = metrics.reduce((accumulator, metric) => {
+        if (metric.day === 1) {
+          return accumulator;
+        }
+        return accumulator + metric.added;
+      }, 0);
+
+      const storyPointsBurned = metrics
+        .reduce((accumulator, nextMetric) => accumulator + nextMetric.completed, 0);
+
+      const storyPointsLeft = storyPointsInSprint - storyPointsBurned;
 
       res.send({
         sprintName,
@@ -112,21 +137,21 @@ app.get('/sprint/metrics', async (req, res) => {
         sprintEndDate,
         sprintDuration,
         daysRemaning,
-        totalPointsInSprint,
-        totalCompletedPointsInSprint,
-        leftInSprint,
+        totalPointsInSprint: storyPointsInSprint,
+        totalCompletedPointsInSprint: storyPointsBurned,
+        leftInSprint: storyPointsLeft,
         metrics,
+        storyPointsAddedDuringSprint,
       });
     } else {
-      res.send({
-        sprintName,
-        totalPointsInSprint,
-        totalCompletedPointsInSprint,
-        leftInSprint,
-      });
+      console.log('Error encountered finding sprint start action')
+      res.status(500)
+      res.send('Error encountered with missing data')
     }
-  } catch (err) {
-    console.log(err)
+  } catch (error) {
+    console.log(error);
+    res.status(error.status);
+    res.send(error.message)
   }
 });
 

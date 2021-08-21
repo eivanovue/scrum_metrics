@@ -1,5 +1,5 @@
-module.exports = card => {
-  if (card.pluginData) {
+const getCardEstimate = (card) => {
+  if (card) {
     const pluginData = card.pluginData
       .find(plugin => plugin.value.includes('estimate'));
     if (pluginData) {
@@ -10,3 +10,5 @@ module.exports = card => {
   }
   return 0;
 }
+
+module.exports = getCardEstimate;

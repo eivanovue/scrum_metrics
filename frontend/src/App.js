@@ -1,14 +1,16 @@
 import './App.scss';
 import getter from './util/getter';
 import { Container, Card, Row, Col, Button } from 'react-bootstrap';
-import Navigation from './components/Nav';
+import Navigation from './components/nav';
 import ResponsiveArticle from './util/ResponsiveArticle';
 import BurnDownChart from './components/burndown-chart';
 import { useState } from 'react';
 import catVideo from './assets/cat.mp4';
+import PageError from './components/page-error';
+import AddedBurnedChart from './components/added-burned-chart';
 
 function App() {
-  const { data, loading } = getter('http://82.37.208.27:3001/sprint/metrics/30/Hafling');
+  const { data, loading, error } = getter('http://82.37.208.27:3001/sprint/metrics');
   const [isGoodVibes, setIsGoodVibes] = useState(false);
 
   const handleGoodVibes = () => {
@@ -34,13 +36,17 @@ function App() {
     <div className="min-vh-100">
       <Navigation />
       <Container>
+
         {loading && (
           <ResponsiveArticle className="mt-5" />
         )}
-        {!loading && (
+
+        {error && <PageError />}
+
+        {!loading && !error && (
           <>
             <Row className="mt-5">
-              <Col md={{ span: 4 }} xl={{ span: 3 }}>
+              <Col md={{ span: 4 }} xl={{ span: 3 }} className="mb-3">
                 <Card className="card bg-c-blue order-card">
                   <div className="card-block">
                     <Row>
@@ -65,7 +71,7 @@ function App() {
                 </Card>
               </Col>
 
-              <Col md={{ span: 4 }} xl={{ span: 3 }}>
+              <Col md={{ span: 4 }} xl={{ span: 3 }} className="mb-3">
                 <Card className="card bg-c-green order-card">
                   <div className="card-block">
                     <Row>
@@ -90,7 +96,7 @@ function App() {
                 </Card>
               </Col>
 
-              <Col md={{ span: 4 }} xl={{ span: 3 }} className="align-items-stretch" >
+              <Col md={{ span: 4 }} xl={{ span: 3 }} className="align-items-stretch mb-3" >
                 <Card className="card bg-c-yellow order-card">
                   <div className="card-block">
                     <Row>
@@ -106,11 +112,16 @@ function App() {
                         <h2 className="text-right"><span>{data.totalPointsInSprint}</span></h2>
                       </Col>
                     </Row>
+                    <Row>
+                      <Col className="">
+                        <p>Added During Sprint<span className="f-right">{data.storyPointsAddedDuringSprint}</span></p>
+                      </Col>
+                    </Row>
                   </div>
                 </Card>
               </Col>
 
-              <Col md={{ span: 4 }} xl={{ span: 3 }}>
+              <Col md={{ span: 4 }} xl={{ span: 3 }} className="mb-3">
                 <Card className="card bg-c-pink order-card">
                   <div className="card-block">
                     <Row>
@@ -127,7 +138,7 @@ function App() {
                       </Col>
                     </Row>
                     <Row>
-                      <Col className="">
+                      <Col>
                         <p>Remaining<span className="f-right">{data.leftInSprint}</span></p>
                       </Col>
                     </Row>
@@ -136,9 +147,18 @@ function App() {
               </Col>
             </Row>
 
-            <Row className="justify-content-between">
+            <Row className="justify-content-between mb-5">
               <Col style={styleOptions.col}>
                 <BurnDownChart
+                  totalPointsInSprint={data.totalPointsInSprint}
+                  sprintMetrics={data.metrics}
+                />
+              </Col>
+            </Row>
+
+            <Row className="justify-content-between">
+              <Col style={styleOptions.col}>
+                <AddedBurnedChart
                   totalPointsInSprint={data.totalPointsInSprint}
                   sprintMetrics={data.metrics}
                 />
@@ -157,6 +177,7 @@ function App() {
                 </Button>
               </Col>
             </Row>
+
             {isGoodVibes && (
               <Row>
                 <Col>

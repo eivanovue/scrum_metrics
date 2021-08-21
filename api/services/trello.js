@@ -4,13 +4,29 @@ const GET_LISTS_URL = `https://api.trello.com/1/boards/${process.env.AZZURRI_TRE
 const GET_CARDS_URL = `https://api.trello.com/1/lists/{listId}/cards?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}&pluginData=true`;
 const GET_CARDS_ACTION_URL = `https://api.trello.com/1/cards/{cardId}/actions?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}&filter=updateCard`;
 const GET_LIST_ACTION_URL = `https://api.trello.com/1/lists/{listId}/actions?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}`;
+const GET_BATCH_URL = `https://api.trello.com/1/batch?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}&urls={urls}`;
+const chunk = require('../util/split-array-into-chunks');
+const createError = require('http-errors')
+
+const getBatchCardActions = async cardIds => {
+  const urls = cardIds.map(cardId => `/cards/${cardId}/actions`);
+  const batchUrls = chunk(urls, 10);
+  const actions = (await Promise.all(batchUrls.map(async urls => {
+    const actions = await axios.get(GET_BATCH_URL.replace('{urls}', urls));
+    return actions.data
+  }))).flat().map(action => action['200']).flat();
+
+  return actions;
+}
 
 const getListsForBoard = async () => {
   try {
     const lists = (await axios.get(GET_LISTS_URL)).data;
     return lists;
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    if (error.response) {
+      throw new createError(error.response.status, error.response.data.message);
+    }
   }
 }
 
@@ -18,8 +34,10 @@ const getCardsForList = async listId => {
   try {
     const cards = (await axios.get(GET_CARDS_URL.replace('{listId}', listId))).data;
     return cards;
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    if (error.response) {
+      throw new createError(error.response.status, error.response.data.message);
+    }
   }
 }
 
@@ -27,8 +45,10 @@ const getCardActions = async cardId => {
   try {
     const actions = (await axios.get(GET_CARDS_ACTION_URL.replace('{cardId}', cardId))).data;
     return actions;
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    if (error.response) {
+      throw new createError(error.response.status, error.response.data.message);
+    }
   }
 }
 
@@ -36,14 +56,18 @@ const getListActions = async listId => {
   try {
     const actions = (await axios.get(GET_LIST_ACTION_URL.replace('{listId}', listId))).data;
     return actions;
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    if (error.response) {
+      throw new createError(error.response.status, error.response.data.message);
+    }
   }
 }
+
 
 module.exports = {
   getCardsForList,
   getCardActions,
   getListActions,
   getListsForBoard,
+  getBatchCardActions,
 }
