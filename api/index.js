@@ -163,7 +163,7 @@ app.use(bodyParser.json());
 
 app.use(pretty());
 
-app.listen(3001, () => console.log(`The API is listening on port 3001!`));
+app.listen(process.env.PORT, () => console.log(`The API is listening on port ${process.env.PORT}`));
 
 https
   .createServer(
@@ -174,6 +174,6 @@ https
     },
     app
   )
-  .listen(4433, () => {
-    console.log('Listening...')
-  });
+  .listen(process.env.SSL_PORT, () => {
+    console.log(`HTTPS Server is listening on port ${process.env.SSL_PORT}`);
+  })
