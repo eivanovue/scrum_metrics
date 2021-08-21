@@ -2,6 +2,8 @@ require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const pretty = require('express-prettify');
+const https = require('https');
+const fs = require('fs');
 
 const {
   getCardsForList,
@@ -55,7 +57,7 @@ app.get('/sprint/metrics', async (req, res) => {
     const completedCardsAndActionsWithEstimates = cardsAndActionsWithEstimates
       .filter(cardAndActions => cardAndActions.card.idList === filteredLists[filteredLists.length - 1].id);
 
-    const sprintStartAction = (await getCardActions('60082e2b402dfd16c9b5659d'))
+    const sprintStartAction = (await getCardActions(process.env.TRELLO_SPRINT_CARD))
       .find(action => action.data.old.name !== action.data.card.name);
 
     if (sprintStartAction) {
@@ -162,3 +164,16 @@ app.use(bodyParser.json());
 app.use(pretty());
 
 app.listen(3001, () => console.log(`The API is listening on port 3001!`));
+
+https
+  .createServer(
+    {
+      key: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/privkey.pem'),
+      cert: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/cert.pem'),
+      ca: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/fullchain.pem'),
+    },
+    app
+  )
+  .listen(4433, () => {
+    console.log('Listening...')
+  });

@@ -8,8 +8,10 @@ import { useState } from 'react';
 import catVideo from './assets/cat.mp4';
 import PageError from './components/page-error';
 import AddedBurnedChart from './components/added-burned-chart';
+import env from "react-dotenv";
 
 function App() {
+  console.log(env.API_HOST)
   const { data, loading, error } = getter('http://82.37.208.27:3001/sprint/metrics');
   const [isGoodVibes, setIsGoodVibes] = useState(false);
 
