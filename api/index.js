@@ -100,7 +100,7 @@ app.get('/sprint/metrics', async (req, res) => {
       const storyPointsInSprint = metricsRaw
         .reduce((accumulator, metric) => accumulator + metric.added, 0);
 
-      let remaining = storyPointsInSprint;
+      let remaining = metricsRaw[0].added;
 
       const metrics = metricsRaw.map((metric) => {
         const { added, completed, day } = metric;
@@ -112,6 +112,7 @@ app.get('/sprint/metrics', async (req, res) => {
         }
 
         return {
+          day,
           added,
           completed,
           remaining,

@@ -16,6 +16,7 @@ import AddedBurnedChart from './components/added-burned-chart';
 
 function App() {
   const API_URL = `${env.SSL === 'true' ? 'https://' : 'http://'}${env.API_HOST}:${env.SSL === 'true' ? env.API_PORT_SSL : env.API_PORT}/sprint/metrics`;
+  // const API_URL = 'http://localhost:3001/sprint/metrics';
   const { data, loading, error } = getter(API_URL);
   const [isGoodVibes, setIsGoodVibes] = useState(false);
   const handleGoodVibes = () => {

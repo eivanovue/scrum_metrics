@@ -5,11 +5,14 @@ import HighchartsReact from 'highcharts-react-official';
 
 const BurnDownChart = (props) => {
   const { totalPointsInSprint, sprintMetrics } = props;
-  let idealRemaining = totalPointsInSprint;
-  const ideal = Array(10).fill().map(() => {
-    idealRemaining -= (Math.round(totalPointsInSprint / 10));
-    return idealRemaining < 0 ? 0 : idealRemaining;
-  });
+  const ideal = [];
+  const totalDaysInSprint = 10;
+  const idealIncrement = totalPointsInSprint / totalDaysInSprint;
+  for (let i = 0; i <= totalDaysInSprint - 1; i++) {
+    ideal.push(Math.round(idealIncrement * (i)));
+  }
+  ideal.reverse();
+
   const actual = sprintMetrics.map((metric) => metric.remaining);
   const options = {
     title: {
