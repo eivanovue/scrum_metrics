@@ -3,15 +3,42 @@ import React from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 
-const BurnDownChart = (props) => {
-  const { totalPointsInSprint, sprintMetrics } = props;
-  const ideal = [];
-  const totalDaysInSprint = 10;
-  const idealIncrement = totalPointsInSprint / totalDaysInSprint;
-  for (let i = 0; i <= totalDaysInSprint - 1; i++) {
-    ideal.push(Math.round(idealIncrement * (i)));
+const sumArrayUpTo = (arrData, index) => {
+  let total = 0;
+  for (let i = 0; i <= index; i++) {
+    if (arrData.length > i) {
+      total += arrData[i];
+    }
   }
-  ideal.reverse();
+  return total;
+};
+
+const BurnDownChart = (props) => {
+  const { sprintMetrics } = props;
+  const totalDaysInSprint = sprintMetrics.length;
+
+  const totalPointsInSprint = sprintMetrics[0].remaining;
+  const idealPointsPerDay = totalPointsInSprint / (totalDaysInSprint - 1);
+
+  const scopeChange = sprintMetrics.map((metric, idx) => {
+    if (idx === 0) {
+      return 0;
+    }
+    return metric.added;
+  });
+  let i = 0;
+  const ideal = [
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 0)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 1)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 2)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 3)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 4)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 5)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 6)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 7)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 8)),
+    Math.round(totalPointsInSprint - (idealPointsPerDay * i++) + sumArrayUpTo(scopeChange, 9)),
+  ];
 
   const actual = sprintMetrics.map((metric) => metric.remaining);
   const options = {
@@ -36,6 +63,7 @@ const BurnDownChart = (props) => {
       title: {
         text: 'Story Points',
       },
+      min: 0,
       plotLines: [{
         value: 0,
         width: 1,
@@ -53,12 +81,13 @@ const BurnDownChart = (props) => {
       borderWidth: 0,
     },
     series: [{
-      name: 'Ideal remaining',
-      color: 'rgba(255,0,0,0.25)',
+      name: 'Ideal',
+      color: '#6C8893',
       lineWidth: 2,
+      dashStyle: 'DashDot',
       data: ideal,
     }, {
-      name: 'Actual remaining',
+      name: 'Remaining',
       color: 'rgba(0,120,200,0.75)',
       marker: {
         radius: 6,
