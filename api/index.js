@@ -163,15 +163,15 @@ app.use(pretty());
 
 app.listen(process.env.PORT, () => console.log(`The API is listening on port ${process.env.PORT}`));
 
-https
-  .createServer(
-    {
-      key: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/privkey.pem'),
-      cert: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/cert.pem'),
-      ca: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/fullchain.pem'),
-    },
-    app,
-  )
-  .listen(process.env.SSL_PORT, () => {
-    console.log(`HTTPS Server is listening on port ${process.env.SSL_PORT}`);
-  });
+// https
+//   .createServer(
+//     {
+//       key: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/privkey.pem'),
+//       cert: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/cert.pem'),
+//       ca: fs.readFileSync('/etc/letsencrypt/live/eivanov.dev/fullchain.pem'),
+//     },
+//     app,
+//   )
+//   .listen(process.env.SSL_PORT, () => {
+//     console.log(`HTTPS Server is listening on port ${process.env.SSL_PORT}`);
+//   });
