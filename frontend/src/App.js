@@ -11,6 +11,7 @@ import Navigation from './components/nav';
 import ResponsiveArticle from './util/ResponsiveArticle';
 import BurnDownChart from './components/burndown-chart';
 import catVideo from './assets/cat.mp4';
+import fridayVideo from './assets/friday.mp4';
 import PageError from './components/page-error';
 import AddedBurnedChart from './components/added-burned-chart';
 
@@ -22,6 +23,9 @@ function App() {
   const handleGoodVibes = () => {
     setIsGoodVibes(!isGoodVibes);
   };
+
+  const todaysDate = new Date();
+  const dayToday = todaysDate.getDay();
 
   const styleOptions = {
     col: {
@@ -205,7 +209,7 @@ function App() {
               <Row>
                 <Col>
                   <video width="600" height="500" controls autoPlay>
-                    <source src={catVideo} type="video/mp4" />
+                    <source src={dayToday === 5 ? fridayVideo : catVideo} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </Col>
