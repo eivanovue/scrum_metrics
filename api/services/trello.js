@@ -1,5 +1,6 @@
 const axios = require('axios');
 
+const GET_CARD_URL = `https://api.trello.com/1/cards/{cardId}?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}`;
 const GET_LISTS_URL = `https://api.trello.com/1/boards/${process.env.AZZURRI_TRELLO_BOARD}/lists?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}`;
 const GET_CARDS_URL = `https://api.trello.com/1/lists/{listId}/cards?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}&pluginData=true`;
 const GET_CARDS_ACTION_URL = `https://api.trello.com/1/cards/{cardId}/actions?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_TOKEN}&filter=updateCard`;
@@ -17,6 +18,17 @@ const getBatchCardActions = async (cardIds) => {
   }))).flat().map((action) => action['200']).flat();
 
   return actions;
+};
+
+const getCardById = async (cardId) => {
+  try {
+    const card = (await axios.get(GET_CARD_URL.replace('{cardId}', cardId))).data;
+    return card;
+  } catch (error) {
+    if (error.response) {
+      throw new CreateError(error.response.status, error.response.data.message);
+    }
+  }
 };
 
 const getListsForBoard = async () => {
@@ -65,6 +77,7 @@ const getListActions = async (listId) => {
 
 module.exports = {
   getCardsForList,
+  getCardById,
   getCardActions,
   getListActions,
   getListsForBoard,
