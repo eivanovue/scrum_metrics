@@ -5,6 +5,7 @@ const getCardEstimate = require('./get-card-estimate');
 const getRequiredLists = require('./get-required-lists');
 const getSprintInfo = require('./get-sprint-info');
 const splitArrayIntoChunks = require('./split-array-into-chunks');
+const findIssueHistoryByType = require('./find-issue-history-by-type');
 
 module.exports = {
   calculateSprintDates,
@@ -14,4 +15,5 @@ module.exports = {
   getRequiredLists,
   getSprintInfo,
   splitArrayIntoChunks,
+  findIssueHistoryByType,
 };
