@@ -12,12 +12,12 @@ const AddedBurnedChart = (props) => {
   const options = {
     chart: {
       type: 'column',
+      width: 1000,
     },
     title: {
-      text: 'Story Points Added and Burned',
-      x: -20, // center
+      text: '',
     },
-    colors: ['blue', 'red'],
+    colors: ['rgba(111, 113, 182, 0.06)', '#212243'],
     plotOptions: {
       line: {
         lineWidth: 3,
@@ -29,19 +29,20 @@ const AddedBurnedChart = (props) => {
     xAxis: {
       categories: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6',
         'Day 7', 'Day 8', 'Day 9', 'Day 10'],
+      gridLineColor: 'transparent',
+
     },
     yAxis: {
       title: {
-        text: 'Story Points',
+        text: '',
       },
+      gridLineColor: 'transparent',
       plotLines: [{
         value: 0,
         width: 1,
       }],
     },
     tooltip: {
-      valueSuffix: ' points',
-      crosshairs: true,
       shared: true,
     },
     legend: {
@@ -52,12 +53,14 @@ const AddedBurnedChart = (props) => {
     },
     series: [{
       name: 'Story points added',
-      color: 'rgba(255,0,0,0.25)',
+      color: 'rgba(111, 113, 182, 0.6)',
       data: burned,
+      showInLegend: false,
     }, {
       name: 'Story points burned',
-      color: 'rgba(0,120,200,0.75)',
+      color: '#212243',
       data: added,
+      showInLegend: false,
     }],
   };
 

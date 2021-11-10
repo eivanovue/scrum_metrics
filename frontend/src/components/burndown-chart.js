@@ -42,14 +42,16 @@ const BurnDownChart = (props) => {
 
   const actual = sprintMetrics.map((metric) => metric.remaining);
   const options = {
-    title: {
-      text: 'Burndown Chart',
-      x: -20, // center
+    chart: {
+      width: '1000',
     },
-    colors: ['blue', 'red'],
+    title: {
+      text: '',
+    },
+    colors: ['rgba(111, 113, 182, 0.06)', '#212243'],
     plotOptions: {
       line: {
-        lineWidth: 3,
+        lineWidth: 5,
       },
       tooltip: {
         hideDelay: 200,
@@ -61,8 +63,9 @@ const BurnDownChart = (props) => {
     },
     yAxis: {
       title: {
-        text: 'Story Points',
+        text: '',
       },
+      gridLineColor: 'transparent',
       min: 0,
       plotLines: [{
         value: 0,
@@ -70,36 +73,30 @@ const BurnDownChart = (props) => {
       }],
     },
     tooltip: {
-      valueSuffix: ' points',
-      crosshairs: true,
       shared: true,
     },
-    legend: {
-      layout: 'horizontal',
-      align: 'center',
-      verticalAlign: 'bottom',
-      borderWidth: 0,
-    },
     series: [{
+      showInLegend: false,
       name: 'Ideal',
-      color: '#6C8893',
-      lineWidth: 2,
+      color: 'rgba(111, 113, 182, 0.6)',
+      lineWidth: 5,
       dashStyle: 'DashDot',
       data: ideal,
     }, {
+      showInLegend: false,
       name: 'Remaining',
-      color: 'rgba(0,120,200,0.75)',
-      marker: {
-        radius: 6,
-      },
+      color: '#212243',
       data: actual,
     }],
+    backgroundColor: null,
   };
 
   return (
     <HighchartsReact
       highcharts={Highcharts}
       options={options}
+      style={{ width: '100%' }}
+
     />
   );
 };

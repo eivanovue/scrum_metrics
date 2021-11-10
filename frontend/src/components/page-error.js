@@ -1,10 +1,11 @@
 import React from 'react';
 import { Row, Col, Button } from 'react-bootstrap';
+import loadingCat from '../assets/loading_cat.gif';
 
 const PageError = () => {
   const styles = {
     errorContainer: {
-      marginTop: '200px',
+      marginTop: '50px',
       textAlign: 'center',
     },
     icon: {
@@ -17,19 +18,29 @@ const PageError = () => {
       marginTop: '25px',
       opacity: '.75',
     },
+    button: {
+      height: '50px',
+      borderRadius: '16px',
+      boxShadow: '0px 17px 24px rgba(0, 0, 0, 0.14)',
+    },
   };
+
   return (
     <Row style={styles.errorContainer}>
-      <Col>
-        <h1 style={styles.heading}>
-          <i className="fa fa-exclamation-circle" style={styles.icon} />
-          Oops...
-        </h1>
-        <p style={styles.description}>
-          Something has gone wrong on our end. We apologise for the inconvinience.
-        </p>
-        <Button variant="dark" onClick={() => window.location.reload()}>Refresh</Button>
+      <Col className="text-center">
+        <img className="img-fluid" src={loadingCat} alt="loading gif" />
+        <h3 style={{ textAlign: 'center' }}>Hmm...</h3>
+        <h6 style={{ textAlign: 'center' }}>Seems like the server is playing hard to get!</h6>
+        <br />
+        <Button style={styles.button} variant="dark" onClick={() => window.location.reload()}>
+          <h6
+            style={{ color: 'white' }}
+          >
+            Try again habibi
+          </h6>
+        </Button>
       </Col>
+
     </Row>
   );
 };
