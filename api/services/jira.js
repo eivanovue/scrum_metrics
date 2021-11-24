@@ -29,7 +29,7 @@ const getCurrentSprint = async (boardId) => {
         ...authorize(),
       },
     });
-    return currentSprint.data.values.find((sprint) => sprint.originBoardId === Number(boardId));
+    return currentSprint.data.values.find(({ originBoardId, state }) => originBoardId === Number(boardId) && state === 'active');
   } catch (error) {
     if (error.response) {
       throw new CreateError(error.response.status, error.response.data.message);
