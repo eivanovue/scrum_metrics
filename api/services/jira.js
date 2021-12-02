@@ -39,7 +39,7 @@ const getCurrentSprint = async (boardId) => {
 
 const getIssuesForSprint = async (sprintId) => {
   try {
-    const URL = `https://${JIRA_DOMAIN}.atlassian.net/rest/agile/1.0/sprint/${sprintId}/issue?expand=changelog`;
+    const URL = `https://${JIRA_DOMAIN}.atlassian.net/rest/agile/1.0/sprint/${sprintId}/issue?expand=changelog&maxResults=1000`;
     const issuesForSprint = await axios.get(URL, {
       headers: {
         Accept: 'application/json',
