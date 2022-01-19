@@ -63,12 +63,11 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       contents: {
         completedIssuesEstimateSum: { value: storyPointsBurned },
         issuesNotCompletedEstimateSum: { value: storyPointsRemaining },
+        allIssuesEstimateSum: { value: storyPointsInSprint },
         issueKeysAddedDuringSprint,
       },
-      sprint: { daysRemaining },
+      // sprint: { daysRemaining },
     } = await getSprintReport(sprintId);
-
-    const storyPointsInSprint = storyPointsBurned + storyPointsRemaining;
 
     const issuesForSprint = await getIssuesForSprint(sprintId);
 
@@ -115,6 +114,7 @@ router.get('/board/:boardId/sprint', async (req, res) => {
     const {
       sprintDuration,
       datesInSprint,
+      daysRemaning,
     } = calculateSprintDates(currentSprint.startDate);
 
     const rawMetrics = datesInSprint.map(({ date, day }) => {
@@ -167,12 +167,12 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       sprintGoals,
       sprintName,
       sprintNumber,
-      totalPointsInSprint: storyPointsInSprint,
+      totalPointsInSprint: storyPointsInSprint === 'null' ? 0 : storyPointsInSprint,
       storyPointsAddedDuringSprint,
-      totalCompletedPointsInSprint: storyPointsBurned,
+      totalCompletedPointsInSprint: storyPointsBurned === 'null' ? 0 : storyPointsBurned,
       leftInSprint: storyPointsRemaining,
       sprintDuration,
-      daysRemaining,
+      daysRemaning,
       metrics,
     });
   } catch (error) {
