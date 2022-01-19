@@ -10,6 +10,7 @@ const {
 const {
   getCurrentSprint,
   getIssuesForSprint,
+  getSprintReport,
 } = require('../services/jira');
 
 const ISSUE_HISTORY_TYPES = require('../enums/issue-history-types');
@@ -30,7 +31,6 @@ const getStoryPointsForDate = (
   if (history) {
     const { created: historyDate } = history;
     const historyDateFormatted = dayjs(historyDate).format(process.env.DATE_FORMAT);
-
     if (historyDateFormatted === date) {
       return accumulator + calculateTotalStoryPoints([nextIssue]);
     }
@@ -53,20 +53,47 @@ router.get('/board/:boardId/sprint', async (req, res) => {
     }
 
     const {
-      id: sprintId, name: sprintInfo, startDate, goal,
+      id: sprintId,
+      name: sprintInfo,
+      startDate,
+      goal,
     } = currentSprint;
+
+    const {
+      contents: {
+        completedIssuesEstimateSum: { value: storyPointsBurned },
+        issuesNotCompletedEstimateSum: { value: storyPointsRemaining },
+        issueKeysAddedDuringSprint,
+      },
+      sprint: { daysRemaining },
+    } = await getSprintReport(sprintId);
+
+    const storyPointsInSprint = storyPointsBurned + storyPointsRemaining;
+
     const issuesForSprint = await getIssuesForSprint(sprintId);
 
     if (!issuesForSprint) {
       throw new CreateError(404, 'Could not get issues for sprint');
     }
 
+    const issuesAddedDuringSprint = Object.keys(issueKeysAddedDuringSprint);
+
+    const storyPointsAddedDuringSprint = issuesAddedDuringSprint.reduce((
+      accumulator,
+      issue,
+    ) => {
+      const issueAddedDuringSprint = issuesForSprint
+        .find((issueForSprint) => issueForSprint.key === issue);
+      if (issuesAddedDuringSprint) {
+        return accumulator + (issueAddedDuringSprint
+          .fields[process.env.JIRA_ESTIMATE_FIELD]) || accumulator;
+      }
+      return accumulator;
+    }, 0);
+
     const completedIssues = issuesForSprint
       .filter(({ fields }) => fields.status.name === 'Done');
 
-    const storyPointsInSprint = calculateTotalStoryPoints(issuesForSprint);
-    const storyPointsBurned = calculateTotalStoryPoints(completedIssues);
-    const storyPointsRemaining = storyPointsInSprint - storyPointsBurned;
     const sprintGoalsRaw = goal ? goal.split('\n') : undefined;
 
     const sprintGoals = sprintGoalsRaw.map((goal) => {
@@ -86,11 +113,8 @@ router.get('/board/:boardId/sprint', async (req, res) => {
     const sprintNumber = sprintInfo.split(' - ')[0];
 
     const {
-      sprintStartDate,
-      sprintEndDate,
       sprintDuration,
       datesInSprint,
-      daysRemaning,
     } = calculateSprintDates(currentSprint.startDate);
 
     const rawMetrics = datesInSprint.map(({ date, day }) => {
@@ -135,13 +159,6 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       };
     });
 
-    const storyPointsAddedDuringSprint = metrics.reduce((accumulator, metric) => {
-      if (metric.day === 1) {
-        return accumulator;
-      }
-      return accumulator + metric.added;
-    }, 0);
-
     res.send({
       sprint: {
         sprintId,
@@ -154,10 +171,8 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       storyPointsAddedDuringSprint,
       totalCompletedPointsInSprint: storyPointsBurned,
       leftInSprint: storyPointsRemaining,
-      sprintStartDate,
-      sprintEndDate,
       sprintDuration,
-      daysRemaning,
+      daysRemaining,
       metrics,
     });
   } catch (error) {

@@ -54,8 +54,24 @@ const getIssuesForSprint = async (sprintId) => {
   }
 };
 
+const getSprintReport = async (sprintId) => {
+  try {
+    const URL = `https://${JIRA_DOMAIN}.atlassian.net/rest/greenhopper/latest/rapid/charts/sprintreport?rapidViewId=2&sprintId=${sprintId}`;
+    const report = await axios.get(URL, {
+      headers: {
+        Accept: 'application/json',
+        ...authorize(),
+      },
+    });
+    return report.data;
+  } catch (error) {
+    throw new CreateError(error.response.status, error.response.data.message);
+  }
+};
+
 module.exports = {
   getFieldTypes,
   getCurrentSprint,
   getIssuesForSprint,
+  getSprintReport,
 };
