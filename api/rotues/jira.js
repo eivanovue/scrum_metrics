@@ -133,27 +133,25 @@ router.get('/board/:boardId/sprint', async (req, res) => {
 
       return {
         day,
-        added,
+        added: day === 1 ? (storyPointsInSprint - storyPointsAddedDuringSprint) : added,
         burned,
       };
     });
 
-    let remaining = storyPointsInSprint;
+    let remaining = rawMetrics[0].added;
 
     const metrics = rawMetrics.map((metric) => {
       const { added, burned: completed, day } = metric;
-      let initial = null;
+
       if (day === 1) {
         remaining -= completed;
-        initial = storyPointsInSprint;
       } else {
         remaining = (remaining - completed) + added;
-        initial = added;
       }
 
       return {
         day,
-        added: initial,
+        added,
         completed,
         remaining,
       };
