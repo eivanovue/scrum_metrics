@@ -75,8 +75,11 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       throw new CreateError(404, 'Could not get issues for sprint');
     }
 
-    const issuesAddedDuringSprint = Object.keys(issueKeysAddedDuringSprint);
+    const completedIssues = issuesForSprint
+      .filter(({ fields }) => fields.status.name === 'Done');
 
+    const issuesAddedDuringSprint = Object.keys(issueKeysAddedDuringSprint);
+    const issuesAddedDuringSprintNotCompleted = [];
     const storyPointsAddedDuringSprint = issuesAddedDuringSprint.reduce((
       accumulator,
       issue,
@@ -84,14 +87,18 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       const issueAddedDuringSprint = issuesForSprint
         .find((issueForSprint) => issueForSprint.key === issue);
       if (issuesAddedDuringSprint) {
+        const { fields } = issueAddedDuringSprint;
+        if (fields.status.name !== 'Done') {
+          issuesAddedDuringSprintNotCompleted.push(issueAddedDuringSprint);
+        }
         return accumulator + (issueAddedDuringSprint
           .fields[process.env.JIRA_ESTIMATE_FIELD]) || accumulator;
       }
       return accumulator;
     }, 0);
 
-    const completedIssues = issuesForSprint
-      .filter(({ fields }) => fields.status.name === 'Done');
+    const leftInSprint = storyPointsRemaining
+      + calculateTotalStoryPoints(issuesAddedDuringSprintNotCompleted);
 
     const sprintGoalsRaw = goal ? goal.split('\n') : undefined;
 
@@ -168,7 +175,7 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       totalPointsInSprint: storyPointsInSprint,
       storyPointsAddedDuringSprint,
       totalCompletedPointsInSprint: storyPointsBurned || 0,
-      leftInSprint: storyPointsRemaining,
+      leftInSprint,
       sprintDuration,
       daysRemaning,
       metrics,
