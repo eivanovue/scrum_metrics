@@ -153,7 +153,7 @@ router.get('/board/:boardId/sprint', async (req, res) => {
 
       return {
         day,
-        added: day === 1 ? (storyPointsInSprint - storyPointsAddedDuringSprint) : added,
+        added: day === 1 ? (storyPointsInSprint() - storyPointsAddedDuringSprint) : added,
         burned,
       };
     });
