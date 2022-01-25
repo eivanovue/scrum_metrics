@@ -31,6 +31,7 @@ const getStoryPointsForDate = (
   if (history) {
     const { created: historyDate } = history;
     const historyDateFormatted = dayjs(historyDate).format(process.env.DATE_FORMAT);
+
     if (historyDateFormatted === date) {
       return accumulator + calculateTotalStoryPoints([nextIssue]);
     }
@@ -63,11 +64,23 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       contents: {
         completedIssuesEstimateSum: { value: storyPointsBurned },
         issuesNotCompletedEstimateSum: { value: storyPointsRemaining },
-        allIssuesEstimateSum: { value: storyPointsInSprint },
         issueKeysAddedDuringSprint,
       },
-      // sprint: { daysRemaining },
     } = await getSprintReport(sprintId);
+
+    const storyPointsInSprint = () => {
+      let result = 0;
+
+      if (storyPointsBurned) {
+        result += storyPointsBurned;
+      }
+
+      if (storyPointsRemaining) {
+        result += storyPointsRemaining;
+      }
+
+      return result;
+    };
 
     const issuesForSprint = await getIssuesForSprint(sprintId);
 
@@ -97,8 +110,8 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       return accumulator;
     }, 0);
 
-    const leftInSprint = storyPointsRemaining
-      + calculateTotalStoryPoints(issuesAddedDuringSprintNotCompleted);
+    const leftInSprint = storyPointsRemaining;
+    // + calculateTotalStoryPoints(issuesAddedDuringSprintNotCompleted);
 
     const sprintGoalsRaw = goal ? goal.split('\n') : undefined;
 
@@ -172,7 +185,7 @@ router.get('/board/:boardId/sprint', async (req, res) => {
       sprintGoals,
       sprintName,
       sprintNumber,
-      totalPointsInSprint: storyPointsInSprint,
+      totalPointsInSprint: storyPointsInSprint(),
       storyPointsAddedDuringSprint,
       totalCompletedPointsInSprint: storyPointsBurned || 0,
       leftInSprint,
