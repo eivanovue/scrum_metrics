@@ -99,7 +99,7 @@ router.get('/board/:boardId/sprint', async (req, res) => {
     ) => {
       const issueAddedDuringSprint = issuesForSprint
         .find((issueForSprint) => issueForSprint.key === issue);
-      if (issuesAddedDuringSprint) {
+      if (issueAddedDuringSprint) {
         const { fields } = issueAddedDuringSprint;
         if (fields.status.name !== 'Done') {
           issuesAddedDuringSprintNotCompleted.push(issueAddedDuringSprint);
